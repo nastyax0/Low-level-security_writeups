@@ -96,11 +96,50 @@ In simpler terms our stack looks like this,
 
 ![IMG_20241115_130706](https://github.com/user-attachments/assets/e49220e0-58d4-4963-b903-dc0681d1162f)
 
-main and secure has no connection and secure is calling function system.
+main and secure has no connection and secure is calling function system, morever we know program is using gets functions we could do buffer overflow to reach till return.
 
+So rather we aim to exploit a buffer overflow vulnerability, specifically designed to demonstrate Return-Oriented Programming (ROP) and ret2libc exploitation. The goal is to execute a system call that runs the command "/bin/sh" to spawn a shell.
+
+For this to work we have to find where system() and bin/sh are located,
+For the system its evident in secure function or we could 
+
+```bash
+info function system
+```
+
+> 0x401040 <system@plt>
+
+further for bin/sh, I will try to find in libc/so.6
+by 
+```bash
+info proc mapping
+```
+we got ranges, by that
+
+![Screenshot 2024-11-15 104842](https://github.com/user-attachments/assets/81131039-6722-4a91-b595-dcf25aa76893)
+
+![Screenshot 2024-11-15 132123](https://github.com/user-attachments/assets/5ea61e51-ba17-4bcb-86c7-06d41fcefc40)
 
 
 # Strategy
+We identified the system() function and the /bin/sh string in the libc library, which would be used in the ROP chain.
+We will attempt a buffer overflow attack where we first fill the buffer with "A"s (to fill up to the return address) and then crafted a payload to redirect execution to the system() function with the /bin/sh string as an argument
+
+ROP Chain Construction:
+The core idea of the attack is to use ROP gadgets to set up the registers for the system call:
+rdi for the first argument to system(), which is the address of "/bin/sh".
+rsi and rdx were set to 0 because system() only takes one argument.
+The crafted ROP chain involved:
+Overwriting the return address of a function with the address of system() (the function we want to call).
+Adding the address of "/bin/sh" (as a string) in rdi, ensuring the system call would execute correctly.
+
+```bash
+ python3 -c 'import sys; sys.stdout.buffer.write(b"A"*120 + b"\x40\x10\x40\x00\x00\x00\x00\x00" + b"\x31\xf6\x7f\xf6\x00\x00\x00\x00")' > payload.bin
+```
+
+![Screenshot 2024-11-15 132457](https://github.com/user-attachments/assets/9ad5120c-8823-40e8-b6b6-6ab21d86b986)
+
+I guess we have reached system, 
 
 
 
