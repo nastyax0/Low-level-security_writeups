@@ -8,7 +8,7 @@ ret2libc type of exploitation are of ROP (Return Orineted Programming) type.
 
 > "What is ROP, what are gadgets(or vehicles), exactly which library function it has to return to, why that library or function?"
 
-These were the questions that popped up in my mind while researching about the technique.
+These were the questions that popped up in my mind while researching about the technique, starting with simpler version ret2libc.
 
 So I felt to start of with simple file first to understand the technique behind before jumping to a program which is unknow to us.
 
@@ -83,13 +83,9 @@ further by using checksec:
 By this we got to know we can execute from stack and protections are off, cause we did, just to show that we can easily try to execute bin/shell from stack without much hastle.
 
 # Analysis
-By wikipedia, 
-> Return-oriented programming (ROP) is a computer security exploit technique that allows an attacker to execute code in the presence of security defenses
-> such as executable space protection and code signing.
-
-> In this technique, an attacker gains control of the call stack to hijack program control flow and then executes carefully chosen machine instruction sequences 
-> that are already present in the machine's memory, called "gadgets". Each gadget typically ends in a return instruction and is located in a subroutine within the > existing program and/or shared library code. Chained together, these gadgets allow an attacker to perform arbitrary operations on a machine employing
-> defenses that thwart simpler attacks.
+By wikipedia,
+> A "return-to-libc" attack is a computer security attack usually starting with a buffer overflow in which a subroutine return address on a call stack is replaced > by an address of a subroutine that is already present in the process executable memory, bypassing the no-execute bit feature (if present) and ridding the
+> attacker of the need to inject their own code. The first example of this attack in the wild was contributed by Alexander Peslyak on the Bugtraq mailing list in > 1997.
 
 ### _What does all this means?_
 In simpler terms our stack looks like this,
@@ -98,7 +94,7 @@ In simpler terms our stack looks like this,
 
 main and secure has no connection and secure is calling function system, morever we know program is using gets functions we could do buffer overflow to reach till return.
 
-So rather we aim to exploit a buffer overflow vulnerability, specifically designed to demonstrate Return-Oriented Programming (ROP) and ret2libc exploitation. The goal is to execute a system call that runs the command "/bin/sh" to spawn a shell.
+So rather we aim to exploit a buffer overflow vulnerability, specifically designed to demonstrate ret2libc exploitation. The goal is to execute a system call that runs the command "/bin/sh" to spawn a shell.
 
 For this to work we have to find where system() and bin/sh are located,
 For the system its evident in secure function or we could 
@@ -122,20 +118,8 @@ we got ranges, by that
 
 
 # Strategy
-We identified the system() function and the /bin/sh string in the libc library, which would be used in the ROP chain.
+We identified the system() function and the /bin/sh string in the libc library, which would be used in the payload.
 We will attempt a buffer overflow attack where we first fill the buffer with "A"s (to fill up to the return address) and then crafted a payload to redirect execution to the system() function with the /bin/sh string as an argument
-
-ROP Chain Construction:
-The core idea of the attack is to use ROP gadgets to set up the registers for the system call:
-rdi for the first argument to system(), which is the address of "/bin/sh".
-rsi and rdx were set to 0 because system() only takes one argument.
-The crafted ROP chain involved:
-Overwriting the return address of a function with the address of system() (the function we want to call).
-Adding the address of "/bin/sh" (as a string) in rdi, ensuring the system call would execute correctly.
-
-```bash
- python3 -c 'import sys; sys.stdout.buffer.write(b"A"*120 + b"\x40\x10\x40\x00\x00\x00\x00\x00" + b"\x31\xf6\x7f\xf6\x00\x00\x00\x00")' > payload.bin
-```
 
 ![Screenshot 2024-11-15 132457](https://github.com/user-attachments/assets/9ad5120c-8823-40e8-b6b6-6ab21d86b986)
 
