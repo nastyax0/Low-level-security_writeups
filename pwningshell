@@ -1,0 +1,30 @@
+Memory Layout:
+------------------------------
+| NOP | NOP | NOP | ... | NOP | Shellcode
+------------------------------
+ ^                                ^
+Start of NOP slide       Start of Shellcode
+
+| 0x90 (NOP) | 0x90 (NOP) | 0x90 (NOP) | 0x90 (NOP) | ... | 0x90 (NOP) | Shellcode |
+|------------|------------|------------|------------|-----|------------|-----------|
+| NOP Slide  | NOP Slide  | NOP Slide  | NOP Slide  | ... | NOP Slide  | Shellcode |
+
+|-----------------|
+| <unsued_memory> |
+|-----------------|
+|   Buffer[64]    |
+|-----------------|
+|      EBX (4)    |
+|-------.---------|
+|-------.---------|
+|-------.---------|
+|-------.---------|
+|-------.---------|       
+|      EBP (4)    |
+|-----------------|
+|      EIP (4)    |
+|-----------------|
+|      RET        |   fill the RET with NOPs and set int3 as per hint, if trace has occured it has set into memory perfectly insert shellcode https://shell-storm.org/shellcode/files/shellcode-811.html
+|-----------------|
+| <unsued_memory> |
+|-----------------|
