@@ -97,6 +97,7 @@ main and secure has no connection and secure is calling function system, morever
 So rather we aim to exploit a buffer overflow vulnerability, specifically designed to demonstrate ret2libc exploitation. The goal is to execute a system call that runs the command "/bin/sh" to spawn a shell.
 
 For this to work we have to find where system() and bin/sh are located,
+then, I would set a breakpoint over ret in main(), (another method would be to find process id and attaching it and then running proc info mappings)
 For the system its evident in secure function or we could 
 
 ```bash
@@ -108,7 +109,7 @@ info function system
 further for bin/sh, I will try to find in libc/so.6
 by 
 ```bash
-info proc mapping
+info proc mappings
 ```
 we got ranges, by that
 
